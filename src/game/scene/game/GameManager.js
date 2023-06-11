@@ -20,10 +20,14 @@ export class GameManager {
   bms;
   speed;
 
-  constructor(ctx, key, bms, debugMode) {
+  // game resources
+  bmsSounds;
+
+  constructor(ctx, key, bms, bmsSounds, debugMode) {
     this.ctx = ctx;
     this.key = key;
     this.bms = bms;
+    this.bmsSounds = bmsSounds;
     this.debugMode = debugMode;
     this.init();
   }
@@ -71,5 +75,4 @@ export class GameManager {
       this.containers[i].update(now);
     }
   };
-
 }

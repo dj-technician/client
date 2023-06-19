@@ -1,7 +1,7 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { DEBUG_TEXT_STYLE } from "./consts/DebugConfig";
 import * as GameUtils from "./utils/GameUtils";
-import {BMS_WIDTH, BMS_X} from "./scene/game/BmsContainer";
+import { BMS_WIDTH, BMS_X } from "./scene/game/BmsContainer";
 
 export class DebugContainer {
   x = 0;

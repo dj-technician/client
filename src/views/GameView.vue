@@ -19,6 +19,7 @@ export default {
       bmsId: null,
       parsedBms: null,
       bmsSounds: new Map(),
+      sounds: null,
     };
   },
   async mounted() {
@@ -31,9 +32,11 @@ export default {
     canvas.height = window.innerHeight;
     this.gameManager = new GameManager(
       canvas,
+      this,
       key,
       this.parsedBms,
       this.bmsSounds,
+      this.sounds,
       Boolean(debug.toLowerCase() === "y")
     );
   },
@@ -79,6 +82,13 @@ export default {
 
     async loadSounds() {
       const header = this.parsedBms.bmsHeader;
+      // download extra sounds
+      this.sounds = {
+        start: new Howl({ src: ["assets/sound/start.m4a"] }),
+        beep: new Howl({ src: ["assets/sound/beep2.wav"] }),
+      };
+
+      // download bms sounds
       header.wav.forEach((soundFile) => {
         if (!soundFile) {
           return;
@@ -97,15 +107,6 @@ export default {
         );
       });
     },
-
-    // getParsedBms() {
-    //   const bms = new Bms();
-    //   bms.blocks = [];
-    //   for (let i = 0; i < 5000; i++) {
-    //     bms.blocks.push(new Block(50 * (i + 1), i % 7));
-    //   }
-    //   return bms;
-    // }
   },
 };
 </script>

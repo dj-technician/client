@@ -9,23 +9,33 @@ export class Keyboard {
   }
 
   init = () => {
-    window.addEventListener("keydown", (e) => {
-      console.log(e.key);
-      const key = this.keys.get(e.key);
-      if (key) {
-        e.stopPropagation();
-        e.preventDefault();
-        key.press();
-      }
-    });
-    window.addEventListener("keyup", (e) => {
-      const key = this.keys.get(e.key);
-      if (key) {
-        e.stopPropagation();
-        e.preventDefault();
-        key.release();
-      }
-    });
+    window.addEventListener("keydown", this.handleKeyDown, true);
+    window.addEventListener("keyup", this.handleKeyUp, true);
+  };
+
+  handleKeyDown = (e) => {
+    console.log(e.key);
+    const key = this.keys.get(e.key);
+    if (key) {
+      e.stopPropagation();
+      e.preventDefault();
+      key.press();
+    }
+  };
+
+  handleKeyUp = (e) => {
+    const key = this.keys.get(e.key);
+    if (key) {
+      e.stopPropagation();
+      e.preventDefault();
+      key.release();
+    }
+  };
+
+  destroy = () => {
+    window.removeEventListener("keydown", this.handleKeyDown, true);
+    window.removeEventListener("keyup", this.handleKeyUp, true);
+    console.log("removed eventlistner");
   };
 }
 

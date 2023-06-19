@@ -3,8 +3,9 @@ import * as GameUtils from "../../utils/GameUtils";
 import {
   getBlockWidthByKey,
   getBlockXByKey,
+  getCurrentKeyIndex,
   isSpace,
-} from "../../utils/GameUtils";
+} from "../../utils/BmsUtils";
 import { WHITE } from "../../consts/Color";
 
 export const BOX_LINE_WIDTH = 2;
@@ -87,14 +88,24 @@ export class BmsContainer {
     this.blockContainer.y = this.y + BMS_Y;
     this.app.stage.addChild(this.blockContainer);
 
-    const blocks = this.gameManager.bms.blocks;
+    const blocks = this.gameManager.bmsData;
+    // const blocks = this.gameManager.bms.blocks;
     for (let i = 0; i < blocks.length; i++) {
-      const x = getBlockXByKey(blocks[i].key, this.gameManager.key);
-      const width = getBlockWidthByKey(blocks[i].key, this.gameManager.key);
-      const sprite = new Graphics()
-        .lineStyle(1, 0xffa500, 1)
-        .drawRect(x, 0, width, 14);
-      this.blockContainer.addChild(sprite);
+      const bmsChannel = blocks[i].bmsChannel;
+      if (bmsChannel.startsWith("PLAYER1")) {
+        // 1p
+        const currentKeyIndex = getCurrentKeyIndex(bmsChannel.split("_")[1]);
+        const x = getBlockXByKey(currentKeyIndex, this.gameManager.key);
+        const width = getBlockWidthByKey(currentKeyIndex, this.gameManager.key);
+        const sprite = new Graphics()
+          .lineStyle(1, 0xffa500, 1)
+          .drawRect(x, 0, width, 14);
+        this.blockContainer.addChild(sprite);
+      } else if (bmsChannel.startsWith("PLAYER2")) {
+        // 2p
+      }
+
+      // todo
     }
   };
 
@@ -114,18 +125,19 @@ export class BmsContainer {
 
   updateBlocks = (now) => {
     const elapsedTime = this.gameManager.elapsedTime;
-    const blocks = this.gameManager.bms.blocks;
-    for (let i = this.latestBlockIndex; i < blocks.length; i++) {
-      const block = blocks[i];
-      const y = elapsedTime - block.time + BMS_Y + BMS_HEIGHT;
-      if (y < 0) {
-        return;
-      }
-      if (y > this.gameManager.gameHeight) {
-        this.latestBlockIndex = i + 1;
-      }
-      this.blockContainer.getChildAt(i).y = y;
-    }
+    // todo bms position 계산 - 핵심!!!
+    // const blocks = this.gameManager.bms.blocks;
+    // for (let i = this.latestBlockIndex; i < blocks.length; i++) {
+    //   const block = blocks[i];
+    //   const y = elapsedTime - block.time + BMS_Y + BMS_HEIGHT;
+    //   if (y < 0) {
+    //     return;
+    //   }
+    //   if (y > this.gameManager.gameHeight) {
+    //     this.latestBlockIndex = i + 1;
+    //   }
+    //   this.blockContainer.getChildAt(i).y = y;
+    // }
   };
 
   updateDebugState = () => {

@@ -3,7 +3,7 @@ import { DebugContainer } from "../../DebugContainer";
 import { MusicListContainer } from "./MusicListContainer";
 import { Key, Keyboard } from "../common/Keyboard";
 import { MusicDetailContainer } from "./MusicDetailContainer";
-import { Howler } from "howler";
+import * as GameUtils from "@/game/utils/GameUtils";
 
 export class MusicSelectManager {
   // common variable
@@ -102,16 +102,9 @@ export class MusicSelectManager {
 
   enterGame = () => {
     this.sounds["select"].play();
-    setTimeout(() => {
-      Howler.unload();
-      this.vue.$router.replace({
-        name: "game",
-        query: {
-          id: this.bmsHeaders[this.currentIndex]['id']
-        }
-        // params: { "id": this.currentIndex },
-      });
-    }, 500);
+    GameUtils.nextScene(this, "game", {
+      id: this.bmsHeaders[this.currentIndex]["id"],
+    });
   };
 
   updateTimeAndFps = (now) => {

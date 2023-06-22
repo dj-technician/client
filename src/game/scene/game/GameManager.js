@@ -16,6 +16,7 @@ export class GameManager {
   gameWidth = 1920;
   gameHeight = 1080;
   startTime;
+  pauseTime = 0;
   elapsedTime = 0;
   lastFrameTime;
   fps = 0;
@@ -100,10 +101,16 @@ export class GameManager {
     if (!this.startTime) {
       this.startTime = 0;
     }
+    if (this.gameStatus === GAME_READY) {
+      return;
+    }
+    if (this.gameStatus === GAME_PAUSE) {
+      this.pauseTime = now - this.elapsedTime - this.startTime;
+    }
     if (!this.lastFrameTime) {
       this.lastFrameTime = now;
     }
-    this.elapsedTime = now - this.startTime;
+    this.elapsedTime = now - this.startTime - this.pauseTime;
 
     if (now - this.lastFrameTime > 1000) {
       const deltaTime = (now - this.lastFrameTime) / this.elapsedFrameCount;
@@ -117,12 +124,14 @@ export class GameManager {
 
   update = (deltaTime) => {
     const now = performance.now();
+    this.updateTimeAndFps(now);
+    this.containers[0].update(now);
 
     if (GAME_PLAYING === this.gameStatus) {
-      this.updateTimeAndFps(now);
-      for (let i = 0; i < this.containers.length; i++) {
-        this.containers[i].update(now);
-      }
+      this.containers[1].update(now);
+      // for (let i = 0; i < this.containers.length; i++) {
+      //   this.containers[i].update(now);
+      // }
     }
   };
 }

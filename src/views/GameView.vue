@@ -26,7 +26,7 @@ export default {
     this.bmsId = this.$route.query.id;
     await this.loadAll();
     const key = this.$route.query.key || 7; // fixme
-    const debug = this.$route.query.debug || "N";
+    const debug = this.$route.query.debug || "Y";
     const canvas = this.$refs.canvas;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;

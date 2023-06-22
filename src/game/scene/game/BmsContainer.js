@@ -27,6 +27,9 @@ export class BmsContainer {
   y = 0;
   latestBlockIndex = 0;
 
+  // bms
+  bpm;
+
   constructor(gameManager) {
     this.gameManager = gameManager;
     this.app = gameManager.app;
@@ -109,6 +112,11 @@ export class BmsContainer {
     }
   };
 
+  initBms = () => {
+    const header = this.gameManager.bmsHeader;
+    this.bpm = header.startBpm;
+  };
+
   initDebugger = () => {
     this.debugContainer = new Container();
     this.debugContainer.x = this.x + BMS_X;
@@ -121,11 +129,19 @@ export class BmsContainer {
       .drawRect(0, 0, BMS_WIDTH, BMS_HEIGHT)
       .endFill();
     this.debugContainer.addChild(debugArea);
+
+    this.updateDebugState();
   };
 
   updateBlocks = (now) => {
     const elapsedTime = this.gameManager.elapsedTime;
     // todo bms position 계산 - 핵심!!!
+    const blocks = this.gameManager.bmsData;
+    for (let i = 0; i < blocks.length; i++) {
+      const block = blocks[i];
+      const y = elapsedTime;
+    }
+
     // const blocks = this.gameManager.bms.blocks;
     // for (let i = this.latestBlockIndex; i < blocks.length; i++) {
     //   const block = blocks[i];

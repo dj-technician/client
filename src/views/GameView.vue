@@ -30,15 +30,16 @@ export default {
     const canvas = this.$refs.canvas;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    this.gameManager = new GameManager(
-      canvas,
-      this,
-      key,
-      this.parsedBms,
-      this.bmsSounds,
-      this.sounds,
-      Boolean(debug.toLowerCase() === "y")
-    );
+    console.log("initializing GameManager...");
+    // this.gameManager = new GameManager(
+    //   canvas,
+    //   this,
+    //   key,
+    //   this.parsedBms,
+    //   this.bmsSounds,
+    //   this.sounds,
+    //   Boolean(debug.toLowerCase() === "y")
+    // );
   },
   methods: {
     async loadAll() {
@@ -50,6 +51,7 @@ export default {
         this.isLoading = false;
       } catch (e) {
         // todo handle when failed to load parsed bms
+        console.error(e);
       } finally {
         this.isLoading = false;
       }
@@ -81,6 +83,8 @@ export default {
     },
 
     async loadSounds() {
+      console.log("parsedBms = ", this.parsedBms);
+
       const header = this.parsedBms.bmsHeader;
       // download extra sounds
       this.sounds = {

@@ -1,5 +1,6 @@
 import {
   BMS_WIDTH,
+  BMS_X,
   SCRATCH_RATIO,
   SPACE_RATIO,
 } from "../scene/game/BmsContainer";
@@ -22,10 +23,10 @@ export function getBlockXByKey(currentKeyIndex, key) {
   const scratchWidth = BMS_WIDTH * SCRATCH_RATIO;
   const spaceWidth = BMS_WIDTH * SPACE_RATIO;
   if (currentKeyIndex === null) {
-    return 0;
+    return BMS_WIDTH + 10;
   }
   if (currentKeyIndex === -1) {
-    return 0;
+    return -scratchWidth - 10;
   }
   let currentX = scratchWidth;
   for (let i = 0; i < currentKeyIndex; i++) {

@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <canvas v-if="!isLoading" ref="canvas"></canvas>
+    <canvas v-show="!isLoading" ref="canvas"></canvas>
   </transition>
   <LoadingComponent v-if="isLoading" />
 </template>
@@ -23,23 +23,28 @@ export default {
     };
   },
   async mounted() {
-    this.bmsId = this.$route.query.id;
-    await this.loadAll();
-    const key = this.$route.query.key || 7; // fixme
-    const debug = this.$route.query.debug || "Y";
-    const canvas = this.$refs.canvas;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    console.log("initializing GameManager...");
-    // this.gameManager = new GameManager(
-    //   canvas,
-    //   this,
-    //   key,
-    //   this.parsedBms,
-    //   this.bmsSounds,
-    //   this.sounds,
-    //   Boolean(debug.toLowerCase() === "y")
-    // );
+    try {
+      this.bmsId = this.$route.query.id;
+      await this.loadAll();
+      const key = this.$route.query.key || 7; // fixme
+      const debug = this.$route.query.debug || "Y";
+      const canvas = this.$refs.canvas;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      this.gameManager = new GameManager(
+        canvas,
+        this,
+        key,
+        this.parsedBms,
+        this.bmsSounds,
+        this.sounds,
+        Boolean(debug.toLowerCase() === "y")
+      );
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.isLoading = false;
+    }
   },
   methods: {
     async loadAll() {
@@ -48,12 +53,9 @@ export default {
         await this.loadBms();
         await this.loadFonts();
         await this.loadSounds();
-        this.isLoading = false;
       } catch (e) {
         // todo handle when failed to load parsed bms
         console.error(e);
-      } finally {
-        this.isLoading = false;
       }
     },
 
@@ -83,8 +85,6 @@ export default {
     },
 
     async loadSounds() {
-      console.log("parsedBms = ", this.parsedBms);
-
       const header = this.parsedBms.bmsHeader;
       // download extra sounds
       this.sounds = {

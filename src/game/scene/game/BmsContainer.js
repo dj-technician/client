@@ -1,4 +1,4 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Text } from "pixi.js";
 import * as GameUtils from "../../utils/GameUtils";
 import {
   getBlockWidthByKey,
@@ -7,6 +7,7 @@ import {
   isSpace,
 } from "../../utils/BmsUtils";
 import { WHITE } from "../../consts/Color";
+import { DEBUG_TEXT_STYLE } from "@/game/consts/DebugConfig";
 
 export const BOX_LINE_WIDTH = 2;
 export const BOX_LINE_COLOR = WHITE;
@@ -29,6 +30,9 @@ export class BmsContainer {
 
   // bms
   bpm;
+  beat; // bar 단위
+  bars; // bar 객체
+  barHeight = 1; // bar
 
   constructor(gameManager) {
     this.gameManager = gameManager;
@@ -39,8 +43,25 @@ export class BmsContainer {
   init = () => {
     // this.x = this.app.renderer.width / 2 - this.gameManager.gameWidth / 2;
     // this.y = this.app.renderer.height / 2 - this.gameManager.gameHeight / 2;
+    this.initBms();
     this.initContainer();
     this.initDebugger();
+  };
+
+  initBms = () => {
+    const header = this.gameManager.bmsHeader;
+    const data = this.gameManager.bmsData;
+    this.bpm = header.startBpm;
+    this.beats = 0;
+
+    this.bars = data.reduce((acc, cur) => {
+      if (acc[cur.bar]) {
+        acc[cur.bar].push(cur);
+        return acc;
+      }
+      acc[cur.bar] = [cur];
+      return acc;
+    }, []);
   };
 
   initContainer = () => {
@@ -51,6 +72,7 @@ export class BmsContainer {
 
     this.initBoxes();
     this.initBlocks();
+    this.initBars();
   };
 
   initBoxes = () => {
@@ -106,15 +128,36 @@ export class BmsContainer {
         this.blockContainer.addChild(sprite);
       } else if (bmsChannel.startsWith("PLAYER2")) {
         // 2p
+      } else {
+        // managing blocks
+        const x = getBlockXByKey(null, this.gameManager.key);
+        const width = 100;
+        const sprite = new Graphics()
+          .lineStyle(1, 0x00a5ff, 1)
+          .drawRect(x, 0, width, 14);
+        this.blockContainer.addChild(sprite);
       }
 
       // todo
     }
   };
 
-  initBms = () => {
-    const header = this.gameManager.bmsHeader;
-    this.bpm = header.startBpm;
+  initBars = () => {
+    this.barContainer = new Container();
+    this.barContainer.x = this.x + BMS_X;
+    this.barContainer.y = this.y + BMS_Y;
+    this.app.stage.addChild(this.barContainer);
+
+    const bars = this.bars;
+    // const blocks = this.gameManager.bms.blocks;
+    console.log(bars.length);
+    for (let i = 0; i < bars.length; i++) {
+      const sprite = new Graphics()
+        .lineStyle(GUIDE_LINE_WIDTH, GUIDE_LINE_COLOR, 1)
+        .moveTo(0, 0)
+        .lineTo(BMS_WIDTH, 0);
+      this.barContainer.addChild(sprite);
+    }
   };
 
   initDebugger = () => {
@@ -122,6 +165,13 @@ export class BmsContainer {
     this.debugContainer.x = this.x + BMS_X;
     this.debugContainer.y = this.y + BMS_Y;
     this.app.stage.addChild(this.debugContainer);
+
+    // music info
+    const bpm = new Text("bpm : ", DEBUG_TEXT_STYLE);
+    bpm.x = 0;
+    bpm.y = BMS_HEIGHT + 20;
+    bpm.name = "debugBpm";
+    this.debugContainer.addChild(bpm);
 
     // bms area
     const debugArea = new Graphics()
@@ -131,6 +181,18 @@ export class BmsContainer {
     this.debugContainer.addChild(debugArea);
 
     this.updateDebugState();
+  };
+
+  updateBars = (now) => {
+    const elapsedTime = this.gameManager.elapsedTime;
+
+    for (let i = 0; i < this.bars.length; i++) {
+      const targetTime =
+        this.gameManager.initialTime +
+        (60000 / this.bpm) * this.barHeight * 4 * i;
+      const remained = (targetTime - elapsedTime) * this.gameManager.speed;
+      this.barContainer.getChildAt(i).y = BMS_HEIGHT - remained;
+    }
   };
 
   updateBlocks = (now) => {
@@ -159,12 +221,14 @@ export class BmsContainer {
   updateDebugState = () => {
     if (GameUtils.isDebug(this.gameManager)) {
       this.debugContainer.visible = true;
+      this.debugContainer.getChildByName("debugBpm").text = "BPM : " + this.bpm;
       return;
     }
     this.debugContainer.visible = false;
   };
 
   update = (now) => {
+    this.updateBars(now);
     this.updateBlocks(now);
     this.updateDebugState();
   };

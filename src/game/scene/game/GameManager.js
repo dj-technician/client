@@ -22,13 +22,14 @@ export class GameManager {
   fps = 0;
   elapsedFrameCount = 0;
   gameStatus = GAME_READY; // 0 : ready, 1 : pause, 2 : playing, 3: end
+  initialTime = 5000;
 
   // game variable
   key;
   bms;
   bmsHeader;
   bmsData;
-  speed;
+  speed = 3;
 
   // game resources
   bmsSounds;
@@ -85,6 +86,7 @@ export class GameManager {
       // start the game
       this.sounds["start"].play();
       this.gameStatus = GAME_PLAYING;
+      this.startTime = performance.now();
     } else if (GAME_PAUSE === this.gameStatus) {
       // resume the game
       this.sounds["start"].play();
@@ -110,7 +112,7 @@ export class GameManager {
     if (!this.lastFrameTime) {
       this.lastFrameTime = now;
     }
-    this.elapsedTime = now - this.startTime - this.pauseTime;
+    this.elapsedTime = now - this.startTime - this.pauseTime; // fixme for debug 4
 
     if (now - this.lastFrameTime > 1000) {
       const deltaTime = (now - this.lastFrameTime) / this.elapsedFrameCount;

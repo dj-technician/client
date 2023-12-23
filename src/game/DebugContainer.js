@@ -21,8 +21,8 @@ export class DebugContainer {
 
   initContainer = () => {
     this.container = new Container();
-    this.container.x = this.x;
-    this.container.y = this.y;
+    this.container.x = this.x + 500;
+    this.container.y = this.y + 100;
     this.app.stage.addChild(this.container);
 
     // game area

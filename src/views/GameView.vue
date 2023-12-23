@@ -93,13 +93,21 @@ export default {
       };
 
       // download bms sounds
-      header.wav.forEach((soundFile) => {
+      header.wav.forEach((soundFile, i) => {
         if (!soundFile) {
           return;
         }
+        // this.bmsSounds.push(new Howl({
+        //   src: [
+        //     "http://localhost:5002/download/bms/sound/" +
+        //       this.bmsId +
+        //       "/" +
+        //       soundFile,
+        //   ],
+        // }), i);
 
         this.bmsSounds.set(
-          soundFile,
+          i,
           new Howl({
             src: [
               "http://localhost:5002/download/bms/sound/" +

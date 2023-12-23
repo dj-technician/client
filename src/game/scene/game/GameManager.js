@@ -22,14 +22,14 @@ export class GameManager {
   fps = 0;
   elapsedFrameCount = 0;
   gameStatus = GAME_READY; // 0 : ready, 1 : pause, 2 : playing, 3: end
-  initialTime = 5000;
+  initialTime = 2000;
 
   // game variable
   key;
   bms;
   bmsHeader;
   bmsData;
-  speed = 3;
+  speed = 0.8;
 
   // game resources
   bmsSounds;

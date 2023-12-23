@@ -1,4 +1,4 @@
-import { Container, Graphics, Text } from "pixi.js";
+import {Container, Graphics, Text} from "pixi.js";
 import * as GameUtils from "../../utils/GameUtils";
 import {
   getBlockWidthByKey,
@@ -6,8 +6,8 @@ import {
   getCurrentKeyIndex,
   isSpace,
 } from "../../utils/BmsUtils";
-import { WHITE } from "../../consts/Color";
-import { DEBUG_TEXT_STYLE } from "@/game/consts/DebugConfig";
+import {WHITE} from "../../consts/Color";
+import {DEBUG_TEXT_STYLE} from "@/game/consts/DebugConfig";
 
 export const BOX_LINE_WIDTH = 2;
 export const BOX_LINE_COLOR = WHITE;
@@ -26,13 +26,12 @@ export const SPACE_RATIO = 0.15;
 export class BmsContainer {
   x = 0;
   y = 0;
-  latestBlockIndex = 0;
 
   // bms
+  startBpm;
   bpm;
-  beat; // bar 단위
   bars; // bar 객체
-  barHeight = 1; // bar
+  stop = 0; // stop 기준 시간
 
   constructor(gameManager) {
     this.gameManager = gameManager;
@@ -51,8 +50,10 @@ export class BmsContainer {
   initBms = () => {
     const header = this.gameManager.bmsHeader;
     const data = this.gameManager.bmsData;
+    this.startBpm = header.startBpm;
     this.bpm = header.startBpm;
-    this.beats = 0;
+
+    console.log('data : ', data);
 
     this.bars = data.reduce((acc, cur) => {
       if (acc[cur.bar]) {
@@ -62,6 +63,12 @@ export class BmsContainer {
       acc[cur.bar] = [cur];
       return acc;
     }, []);
+
+    for (let i = 0; i < this.bars.length; i++) {
+      if (!this.bars[i]) {
+        this.bars[i] = []
+      }
+    }
   };
 
   initContainer = () => {
@@ -73,35 +80,37 @@ export class BmsContainer {
     this.initBoxes();
     this.initBlocks();
     this.initBars();
+
+    this.bpm = this.startBpm;
   };
 
   initBoxes = () => {
     // bms box line
     const boxLine = new Graphics()
-      .lineStyle(BOX_LINE_WIDTH, BOX_LINE_COLOR, BOX_LINE_ALPHA)
-      .drawRect(0, 0, BMS_WIDTH, BMS_HEIGHT);
+    .lineStyle(BOX_LINE_WIDTH, BOX_LINE_COLOR, BOX_LINE_ALPHA)
+    .drawRect(0, 0, BMS_WIDTH, BMS_HEIGHT);
     this.container.addChild(boxLine);
 
     // bms guide line
     const scratchWidth = BMS_WIDTH * SCRATCH_RATIO;
     const spaceWidth = BMS_WIDTH * SPACE_RATIO;
     const scratchLine = new Graphics()
-      .lineStyle(GUIDE_LINE_WIDTH, GUIDE_LINE_COLOR, GUIDE_LINE_ALPHA)
-      .moveTo(scratchWidth, BMS_Y)
-      .lineTo(scratchWidth, BMS_HEIGHT);
+    .lineStyle(GUIDE_LINE_WIDTH, GUIDE_LINE_COLOR, GUIDE_LINE_ALPHA)
+    .moveTo(scratchWidth, BMS_Y)
+    .lineTo(scratchWidth, BMS_HEIGHT);
     this.container.addChild(scratchLine);
     let currentX = scratchWidth;
     for (let i = 0; i < this.gameManager.key - 1; i++) {
       let guideLineX =
-        currentX +
-        (BMS_WIDTH - scratchWidth - spaceWidth) / (this.gameManager.key - 1);
+          currentX +
+          (BMS_WIDTH - scratchWidth - spaceWidth) / (this.gameManager.key - 1);
       if (isSpace(i, this.gameManager.key)) {
         guideLineX = currentX + spaceWidth;
       }
       const guideLine = new Graphics()
-        .lineStyle(GUIDE_LINE_WIDTH, GUIDE_LINE_COLOR, GUIDE_LINE_ALPHA)
-        .moveTo(guideLineX, BMS_Y)
-        .lineTo(guideLineX, BMS_HEIGHT);
+      .lineStyle(GUIDE_LINE_WIDTH, GUIDE_LINE_COLOR, GUIDE_LINE_ALPHA)
+      .moveTo(guideLineX, BMS_Y)
+      .lineTo(guideLineX, BMS_HEIGHT);
       this.container.addChild(guideLine);
       currentX = guideLineX;
     }
@@ -123,18 +132,38 @@ export class BmsContainer {
         const x = getBlockXByKey(currentKeyIndex, this.gameManager.key);
         const width = getBlockWidthByKey(currentKeyIndex, this.gameManager.key);
         const sprite = new Graphics()
-          .lineStyle(1, 0xffa500, 1)
-          .drawRect(x, 0, width, 14);
+        .lineStyle(1, 0xffa500, 1)
+        .drawRect(x, -7, width, 14);
         this.blockContainer.addChild(sprite);
       } else if (bmsChannel.startsWith("PLAYER2")) {
         // 2p
+        const sprite = new Graphics()
+        this.blockContainer.addChild(sprite);
+      } else if (bmsChannel === "BPM") {
+        // const x = getBlockXByKey(null, this.gameManager.key) + 60;
+        // const width = 50;
+        const sprite = new Graphics()
+        // .lineStyle(1, 0xffa5ff, 1)
+        // .drawRect(x, -7, width, 14);
+        this.blockContainer.addChild(sprite);
+      } else if (bmsChannel === "BACKGROUND") {
+        const sprite = new Graphics()
+        this.blockContainer.addChild(sprite);
+      } else if (bmsChannel === "SEQUENCE_STOP") {
+        // const x = getBlockXByKey(null, this.gameManager.key) + 110;
+        // const width = 50;
+        const sprite = new Graphics()
+        // .lineStyle(1, 0xff00ff, 1)
+        // .drawRect(x, -7, width, 14);
+
+        this.blockContainer.addChild(sprite);
       } else {
         // managing blocks
-        const x = getBlockXByKey(null, this.gameManager.key);
-        const width = 100;
+        // const x = getBlockXByKey(null, this.gameManager.key);
+        // const width = 50;
         const sprite = new Graphics()
-          .lineStyle(1, 0x00a5ff, 1)
-          .drawRect(x, 0, width, 14);
+        // .lineStyle(1, 0x00a5ff, 1)
+        // .drawRect(x, -7, width, 14);
         this.blockContainer.addChild(sprite);
       }
 
@@ -153,11 +182,14 @@ export class BmsContainer {
     console.log(bars.length);
     for (let i = 0; i < bars.length; i++) {
       const sprite = new Graphics()
-        .lineStyle(GUIDE_LINE_WIDTH, GUIDE_LINE_COLOR, 1)
-        .moveTo(0, 0)
-        .lineTo(BMS_WIDTH, 0);
+      .lineStyle(GUIDE_LINE_WIDTH, GUIDE_LINE_COLOR, 1)
+      .moveTo(0, 0)
+      .lineTo(BMS_WIDTH, 0);
       this.barContainer.addChild(sprite);
     }
+
+    this.calculateBarTime();
+    console.log('bars : ', this.bars);
   };
 
   initDebugger = () => {
@@ -175,48 +207,156 @@ export class BmsContainer {
 
     // bms area
     const debugArea = new Graphics()
-      .beginFill(0x00ff00, 0.04)
-      .drawRect(0, 0, BMS_WIDTH, BMS_HEIGHT)
-      .endFill();
+    .beginFill(0x00ff00, 0.04)
+    .drawRect(0, 0, BMS_WIDTH, BMS_HEIGHT)
+    .endFill();
     this.debugContainer.addChild(debugArea);
 
     this.updateDebugState();
   };
 
-  updateBars = (now) => {
+  calculateBarTime = () => {
+    const elapsedTime = this.gameManager.elapsedTime;
+
+    let lastTime = this.gameManager.initialTime;
+    let lastPos = 0;
+    let lastY = 0;
+    let bpm = this.startBpm;
+    let isFirstShow = true;
+    for (let i = 0; i < this.bars.length; i++) {
+      let barShorten = 1;
+
+      for (let j = 0; j < this.bars[i].length; j++) {
+        const block = this.bars[i][j];
+        const bmsChannel = block['bmsChannel'];
+        if (bmsChannel === 'BAR_SHORTEN') {
+          barShorten = block['value'];
+          continue;
+        }
+        block['time'] = lastTime + (block['position'] - lastPos) * (1 / bpm
+            * 60000 * 4) * barShorten;
+        if (block['time'] > elapsedTime) {
+          let time;
+          if (isFirstShow) {
+            time = elapsedTime;
+            isFirstShow = false;
+          } else {
+            time = lastTime;
+          }
+
+          if (this.stop < block['time']) {
+            block['y'] = lastY + (block['time'] - Math.max(time, this.stop)) * bpm * 0.005
+                * this.gameManager.speed;
+            lastY = block['y']
+          }
+        }
+
+        lastTime = block['time'];
+        lastPos = block['position'];
+
+        if (bmsChannel === 'BPM') {
+          bpm = block['value'];
+        } else if (bmsChannel === 'BPM_EXTENDED') {
+          bpm = this.gameManager.bmsHeader.bpm[block['value']];
+        } else if (bmsChannel === 'SEQUENCE_STOP') {
+          if (this.gameManager.bmsHeader.stop[block['value']]) {
+            const stopTime = this.gameManager.bmsHeader.stop[block['value']]
+                / 192 / bpm * 60000 * 4;
+            block['stop'] = stopTime;
+            lastTime += stopTime;
+          }
+        }
+      }
+
+      this.bars[i]['time'] = lastTime + (1 - lastPos) * barShorten * (60000
+          / bpm) * 4;
+      if (this.bars[i]['time'] > elapsedTime) {
+        let time;
+        if (isFirstShow) {
+          time = elapsedTime;
+          isFirstShow = false;
+        } else {
+          time = lastTime;
+        }
+
+        this.bars[i]['y'] = lastY + (this.bars[i]['time'] - time) * bpm * 0.005
+            * this.gameManager.speed;
+        lastY = this.bars[i]['y'];
+      }
+      lastTime = this.bars[i]['time'];
+      lastPos = 0;
+    }
+  }
+
+  drawBlocks = () => {
+    let idx = 0;
+    for (let i = 0; i < this.bars.length; i++) {
+      for (let j = 0; j < this.bars[i].length; j++) {
+        const block = this.bars[i][j];
+        const bmsChannel = block['bmsChannel'];
+        if (bmsChannel.startsWith('PLAYER') || bmsChannel === "BPM"
+            || bmsChannel === "SEQUENCE_STOP" || bmsChannel
+            === "BPM_EXTENDED") {
+          this.blockContainer.getChildAt(idx).y = BMS_HEIGHT
+              - this.bars[i][j].y;
+          if (block['time'] < this.gameManager.elapsedTime) {
+            this.blockContainer.getChildAt(idx).y = -14;
+          }
+        }
+        idx++;
+      }
+    }
+  };
+
+  drawBars = () => {
+    for (let i = 0; i < this.bars.length; i++) {
+      this.barContainer.getChildAt(i).y = BMS_HEIGHT - this.bars[i].y;
+      if (this.bars[i]['time'] < this.gameManager.elapsedTime) {
+        this.barContainer.getChildAt(i).y = -14;
+      }
+    }
+  };
+
+  processBlocks = () => {
     const elapsedTime = this.gameManager.elapsedTime;
 
     for (let i = 0; i < this.bars.length; i++) {
-      const targetTime =
-        this.gameManager.initialTime +
-        (60000 / this.bpm) * this.barHeight * 4 * i;
-      const remained = (targetTime - elapsedTime) * this.gameManager.speed;
-      this.barContainer.getChildAt(i).y = BMS_HEIGHT - remained;
-    }
-  };
+      for (let j = 0; j < this.bars[i].length; j++) {
+        const block = this.bars[i][j];
 
-  updateBlocks = (now) => {
-    const elapsedTime = this.gameManager.elapsedTime;
-    // todo bms position 계산 - 핵심!!!
-    const blocks = this.gameManager.bmsData;
-    for (let i = 0; i < blocks.length; i++) {
-      const block = blocks[i];
-      const y = elapsedTime;
+        if (block['played'] === true) {
+          continue;
+        }
+
+        if (block['time'] > elapsedTime) {
+          return;
+        }
+
+        const bmsChannel = block['bmsChannel'];
+        if (bmsChannel === 'BPM') {
+          this.bpm = block['value'];
+        } else if (bmsChannel === 'BPM_EXTENDED') {
+          this.bpm = this.gameManager.bmsHeader.bpm[block['value']];
+        } else if (bmsChannel == "SEQUENCE_STOP") {
+          this.stop = block['time'] + block['stop'];
+          console.log('stop : ', block['stop']);
+        } else if (bmsChannel.startsWith('PLAYER') || bmsChannel.startsWith(
+            'BACKGROUND')) {
+          try {
+            this.gameManager.bmsSounds.get(block['value']).play();
+          } catch (e) {
+            console.error(e)
+          }
+          if (Math.abs(block.y) > 5) {
+            console.log('not 근접 : ', block.y);
+          }
+        }
+
+        block['played'] = true;
+      }
     }
 
-    // const blocks = this.gameManager.bms.blocks;
-    // for (let i = this.latestBlockIndex; i < blocks.length; i++) {
-    //   const block = blocks[i];
-    //   const y = elapsedTime - block.time + BMS_Y + BMS_HEIGHT;
-    //   if (y < 0) {
-    //     return;
-    //   }
-    //   if (y > this.gameManager.gameHeight) {
-    //     this.latestBlockIndex = i + 1;
-    //   }
-    //   this.blockContainer.getChildAt(i).y = y;
-    // }
-  };
+  }
 
   updateDebugState = () => {
     if (GameUtils.isDebug(this.gameManager)) {
@@ -228,10 +368,10 @@ export class BmsContainer {
   };
 
   update = (now) => {
-    this.updateBars(now);
-    this.updateBlocks(now);
+    this.calculateBarTime();
+    this.drawBars();
+    this.drawBlocks();
+    this.processBlocks();
     this.updateDebugState();
   };
-
-  render = () => {};
 }
